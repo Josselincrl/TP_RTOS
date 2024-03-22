@@ -35,6 +35,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define Q_GT_LENGTH 10
+#define Q_GT_SIZE sizeof(big_struct_t)
 
 /* USER CODE END PD */
 
@@ -146,6 +148,9 @@ TaskHandle_t handle_task_give;
 TaskHandle_t handle_task_take;
 uint8_t uart_rx_flag;
 SemaphoreHandle_t sem_state;
+int * buffer;
+QueueHandle_t queue ;
+
 
 int __io_putchar(int chr){
 	HAL_UART_Transmit(&huart1, (uint8_t*)&chr, 1, HAL_MAX_DELAY);
@@ -180,11 +185,25 @@ void Task_uart_com( void * unused ){
 	}
 }
 
+
+
+
 void Task_give(void * unused){
 	for(;;){
 		printf("Task give semaphore before\r\n");
-		xSemaphoreGive(sem_state);
-		vTaskDelay(100);
+		//xSemaphoreGive(sem_state);					//Semaphore
+		for(int i = 0; i<15;i++){
+			printf("Increment de i, multiple du delay 100ms : %d\r\n", i);
+			printf("Task give semaphore before\r\n");
+			//xSemaphoreGive(sem_state);												//Semaphore
+			//xTaskNotifyGive(handle_task_take);										//Notification
+			BaseType_t xQueuestatus = xQueueSend(queue, &i, portMAX_DELAY);				//Queue
+			if (xQueuestatus!= pdTRUE){
+				printf("Error QueueSend");
+			}
+			vTaskDelay(100*i);
+		}
+
 		printf("Task give semaphore after\r\n");
 	}
 
@@ -194,7 +213,19 @@ void Task_give(void * unused){
 void Task_take(void * unused){
 	for(;;){
 		printf("Task take semaphore before\r\n");
-		xSemaphoreTake(sem_state, portMAX_DELAY);
+		//xSemaphoreTake(sem_state, portMAX_DELAY);										//Semaphore
+		/*uint32_t Taskstatus = ulTaskNotifyTake(pdTRUE, 1000 );							//Notification
+		if (Taskstatus != pdTRUE){
+			printf("SYSTEM RESET\r\n");
+			NVIC_SystemReset();
+		}
+		*/
+		BaseType_t XQueuestatus = xQueueReceive(queue, &buffer, 1000);					//Queue
+		if (XQueuestatus != pdTRUE){
+			printf("SYSTEM RESET\r\n");
+			NVIC_SystemReset();
+		}
+		printf("Receive number : %d \r\n", buffer);
 		printf("Task take semaphore after\r\n");
 	}
 }
@@ -290,11 +321,12 @@ int main(void)
 		Error_Handler();
 	}
 
+
 	//////////////////////TASK GIVE///////////////////////////
 	res = xTaskCreate(
 			Task_give,		//Nom de la fonction
-			"Task Give", 		//Nom de la tache
-			256, 				//Taille de la pile en mote de 32bits
+			"Task Give", 	//Nom de la tache
+			256, 			//Taille de la pile en mote de 32bits
 			NULL, 			//Pas de paramètres utilisé
 			2, 				//Priorité
 			&handle_task_give
@@ -307,9 +339,9 @@ int main(void)
 
 	//////////////////////TASK TAKE///////////////////////////
 	res = xTaskCreate(
-			Task_take,	//Nom de la fonction
-			"Task Take", 		//Nom de la tache
-			256, 				//Taille de la pile en mote de 32bits
+			Task_take,		//Nom de la fonction
+			"Task Take", 	//Nom de la tache
+			256, 			//Taille de la pile en mote de 32bits
 			NULL, 			//Pas de paramètres utilisé
 			3, 				//Priorité
 			&handle_task_take
@@ -319,6 +351,8 @@ int main(void)
 		printf("Error creating task Task Take\r\n");
 		Error_Handler();
 	}
+
+	 queue = xQueueCreate(10,sizeof(int));
 
 
 	printf("Task creation successful\r\n");
