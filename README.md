@@ -151,10 +151,11 @@ On créer deux taches queue et deux taches sémaphores.
 ### Statistiques dans le shell
 
 On utilise un timer assez rapide afin de compter le temps entre chaque tick de l'os. On utilise pour ca le TIMER2
-vTaskGetRunTimeStats(pcWriteBuffer); //Cette fonction écrit dans le buffer passé en paramètre
-printf("%s\r\n", pcWriteBuffer); //On récupère les données dans le buffer pour les mettres dans le printf. On affiche toutes les taches et leurs pourcentage d'utilisation
-vTaskList(pcWriteBuffer); //Cette fonction écrit dans le buffer passé en paramètre
-printf("%s\r\n", pcWriteBuffer);//On affiche la liste des taches et leurs consomation en ticks d'horloge
+
+	vTaskGetRunTimeStats(pcWriteBuffer); //Cette fonction écrit dans le buffer passé en paramètre
+	printf("%s\r\n", pcWriteBuffer); //On récupère les données dans le buffer pour les mettres dans le printf. On affiche toutes les taches et leurs pourcentage d'utilisation
+	vTaskList(pcWriteBuffer); //Cette fonction écrit dans le buffer passé en paramètre
+	printf("%s\r\n", pcWriteBuffer);//On affiche la liste des taches et leurs consomation en ticks d'horloge
 
 Etat d'utilisation du CPU :
 
