@@ -157,17 +157,18 @@ vTaskList(pcWriteBuffer); //Cette fonction écrit dans le buffer passé en param
 printf("%s\r\n", pcWriteBuffer);//On affiche la liste des taches et leurs consomation en ticks d'horloge
 
 Etat d'utilisation du CPU :
-Task shell      35              <1%
-SPAM            56433           99%
-Task Take       0               <1%
-Task Give       0               <1%
-IDLE            0               <1%
 
-Task shell      X       6       76      4
-SPAM            R       4       230     1
-Task Take       R       3       245     3
-Task Give       R       2       245     2
-IDLE            R       0       118     5
+	Task shell      35              <1%
+	SPAM            56433           99%
+	Task Take       0               <1%
+	Task Give       0               <1%
+	IDLE            0               <1%
+
+	Task shell      X       6       76      4
+	SPAM            R       4       230     1
+	Task Take       R       3       245     3
+	Task Give       R       2       245     2
+	IDLE            R       0       118     5
 
 ## Création d'un driver 
 
@@ -175,6 +176,7 @@ IDLE            R       0       118     5
 On commence par assigner des pins pour la connexion avec l'ADXL345.
 En premier test nous allons voir le DEVID qui se prononce : "Dèv Id"
 Pour une communication en SPI on utilise la fonction HAL_SPI_Transmit et Receive.
+
 	uint8_t address = 0x00; //Addresse du DEVID donnée dans la doc
 	uint8_t p_data;		//Pointeur de la data
 	uint16_t size = 1;	//Taille en octet de la longueur de la transmission
@@ -190,16 +192,18 @@ POWER_CTL et INIT_ENABLE. Par la suite on attend que le pin INT (qui correspond 
 des registres data 0 et 1 de chacun des axes X,Y,Z. Cela se fait par une fonction réaliser dans le fichier ADXL345.c
 
 Fonction lecture des valeurs de l'acc
-void ACC_READ_Mult(uint8_t* p_data, uint8_t address, uint16_t size){
+
+	void ACC_READ_Mult(uint8_t* p_data, uint8_t address, uint16_t size){
 	address |= 0x80; //Active le bit de lecture 
 	address |= 0b01000000; //Active le 'multiple bit' afin de pouvoir lire toute la data de chaque axe
 	HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_RESET); //ChipSelect a 0
 	HAL_SPI_Transmit(&hspi2, &address, 1, HAL_MAX_DELAY); //On transmet a l'adresse
 	HAL_SPI_Receive(&hspi2, p_data, size, HAL_MAX_DELAY); // On recoit en SPI de la data sur size octets (ici 6)
 	HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_SET); //On remet le chipSelect a 1
-}
+	}
 
 Code permettant de lire les données de l'acc
+
 	uint8_t address = 0x32;
 	uint16_t size = 6;
 	uint8_t p_data[size];	// p_data c'est un pointeur sur le premier element du tableau
